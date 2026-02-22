@@ -1,4 +1,386 @@
 <!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de IMC</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      #root {
+        width: 100%;
+        max-width: 480px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px 36px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        color: #fff;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(90deg, #e94560, #0f3460);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .subtitle {
+        text-align: center;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 32px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.75);
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s, background 0.3s;
+      }
+
+      input[type="number"]:focus {
+        border-color: #e94560;
+        background: rgba(255,255,255,0.12);
+      }
+
+      input[type="number"]::placeholder {
+        color: rgba(255,255,255,0.3);
+      }
+
+      .toggle-group {
+        display: flex;
+        background: rgba(255,255,255,0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 28px;
+      }
+
+      .toggle-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        background: transparent;
+        color: rgba(255,255,255,0.5);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      .toggle-btn.active {
+        background: #e94560;
+        color: #fff;
+        border-radius: 10px;
+      }
+
+      .calc-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #e94560, #c0392b);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.3s, transform 0.2s;
+        margin-top: 8px;
+        letter-spacing: 0.5px;
+      }
+
+      .calc-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .result-box {
+        margin-top: 28px;
+        padding: 24px;
+        border-radius: 16px;
+        text-align: center;
+        animation: fadeIn 0.4s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .bmi-value {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .bmi-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 8px;
+        letter-spacing: 0.5px;
+      }
+
+      .bmi-description {
+        font-size: 0.82rem;
+        margin-top: 10px;
+        color: rgba(255,255,255,0.7);
+        line-height: 1.5;
+      }
+
+      .error-msg {
+        color: #e94560;
+        font-size: 0.85rem;
+        margin-top: 12px;
+        text-align: center;
+      }
+
+      .scale-bar {
+        display: flex;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 10px;
+        margin-top: 18px;
+      }
+
+      .scale-segment {
+        flex: 1;
+        transition: opacity 0.3s;
+      }
+
+      .scale-segment.inactive {
+        opacity: 0.3;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState } = React;
+
+      const categories = [
+        { label: 'Bajo peso',      min: 0,    max: 18.5, color: '#3498db', desc: 'Tu IMC indica bajo peso. Consulta con un profesional de la salud para establecer una dieta adecuada.' },
+        { label: 'Peso normal',    min: 18.5, max: 25,   color: '#2ecc71', desc: '¡Enhorabuena! Tu peso está dentro del rango saludable. Mantén tus hábitos de vida activos y equilibrados.' },
+        { label: 'Sobrepeso',      min: 25,   max: 30,   color: '#f39c12', desc: 'Tu IMC indica sobrepeso. Pequeños cambios en dieta y ejercicio pueden marcar una gran diferencia.' },
+        { label: 'Obesidad I',     min: 30,   max: 35,   color: '#e67e22', desc: 'Obesidad grado I. Se recomienda consultar con un médico para establecer un plan de pérdida de peso.' },
+        { label: 'Obesidad II',    min: 35,   max: 40,   color: '#e74c3c', desc: 'Obesidad grado II. Es importante buscar orientación médica lo antes posible.' },
+        { label: 'Obesidad III',   min: 40,   max: Infinity, color: '#c0392b', desc: 'Obesidad mórbida. Requiere atención médica urgente e intervención profesional.' },
+      ];
+
+      function getCategory(bmi) {
+        return categories.find(c => bmi >= c.min && bmi < c.max);
+      }
+
+      function BMIApp() {
+        const [unit, setUnit]         = useState('metric');   // 'metric' | 'imperial'
+        const [weight, setWeight]     = useState('');
+        const [height, setHeight]     = useState('');
+        const [heightFt, setHeightFt] = useState('');
+        const [heightIn, setHeightIn] = useState('');
+        const [bmi, setBmi]           = useState(null);
+        const [category, setCategory] = useState(null);
+        const [error, setError]       = useState('');
+
+        function reset() {
+          setBmi(null);
+          setCategory(null);
+          setError('');
+        }
+
+        function handleUnitChange(u) {
+          setUnit(u);
+          reset();
+        }
+
+        function calculate() {
+          setError('');
+          let bmiVal;
+
+          if (unit === 'metric') {
+            const w = parseFloat(weight);
+            const h = parseFloat(height) / 100; // cm → m
+            if (!w || !h || w <= 0 || h <= 0) {
+              setError('Por favor, introduce valores válidos y positivos.');
+              return;
+            }
+            bmiVal = w / (h * h);
+          } else {
+            const w  = parseFloat(weight);              // lbs
+            const ft = parseFloat(heightFt) || 0;
+            const inc = parseFloat(heightIn) || 0;
+            const totalInches = ft * 12 + inc;
+            if (!w || totalInches <= 0 || w <= 0) {
+              setError('Por favor, introduce valores válidos y positivos.');
+              return;
+            }
+            bmiVal = (w / (totalInches * totalInches)) * 703;
+          }
+
+          if (bmiVal < 5 || bmiVal > 100) {
+            setError('Los valores introducidos parecen incorrectos. Compruébalos.');
+            return;
+          }
+
+          const cat = getCategory(bmiVal);
+          setBmi(bmiVal.toFixed(1));
+          setCategory(cat);
+        }
+
+        return (
+          <div className="card">
+            <h1>Calculadora de IMC</h1>
+            <p className="subtitle">Índice de Masa Corporal · Body Mass Index</p>
+
+            {/* Unit toggle */}
+            <div className="toggle-group">
+              <button
+                className={`toggle-btn ${unit === 'metric' ? 'active' : ''}`}
+                onClick={() => handleUnitChange('metric')}
+              >
+                Métrico (kg / cm)
+              </button>
+              <button
+                className={`toggle-btn ${unit === 'imperial' ? 'active' : ''}`}
+                onClick={() => handleUnitChange('imperial')}
+              >
+                Imperial (lbs / ft)
+              </button>
+            </div>
+
+            {/* Weight */}
+            <div className="form-group">
+              <label>{unit === 'metric' ? 'Peso (kg)' : 'Peso (lbs)'}</label>
+              <input
+                type="number"
+                min="0"
+                placeholder={unit === 'metric' ? 'Ej: 70' : 'Ej: 154'}
+                value={weight}
+                onChange={e => { setWeight(e.target.value); reset(); }}
+              />
+            </div>
+
+            {/* Height */}
+            {unit === 'metric' ? (
+              <div className="form-group">
+                <label>Altura (cm)</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Ej: 175"
+                  value={height}
+                  onChange={e => { setHeight(e.target.value); reset(); }}
+                />
+              </div>
+            ) : (
+              <div className="form-group">
+                <label>Altura</label>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Pies"
+                    value={heightFt}
+                    onChange={e => { setHeightFt(e.target.value); reset(); }}
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="11"
+                    placeholder="Pulgadas"
+                    value={heightIn}
+                    onChange={e => { setHeightIn(e.target.value); reset(); }}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <button className="calc-btn" onClick={calculate}>
+              Calcular IMC
+            </button>
+
+            {error && <p className="error-msg">{error}</p>}
+
+            {bmi && category && (
+              <div
+                className="result-box"
+                style={{ background: category.color + '22', border: `1px solid ${category.color}55` }}
+              >
+                <div className="bmi-value" style={{ color: category.color }}>
+                  {bmi}
+                </div>
+                <div className="bmi-label" style={{ color: category.color }}>
+                  {category.label}
+                </div>
+                <p className="bmi-description">{category.desc}</p>
+
+                {/* Scale bar */}
+                <div className="scale-bar">
+                  {categories.map(c => (
+                    <div
+                      key={c.label}
+                      className={`scale-segment ${c.label === category.label ? '' : 'inactive'}`}
+                      style={{ background: c.color }}
+                      title={c.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<BMIApp />);
+    </script>
+  </body>
+</html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
