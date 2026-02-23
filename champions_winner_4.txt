@@ -1,5 +1,7 @@
-Atletico de Madrid
-=================================================
-Team: Paris Saint-Germain
-Reason: Financially powerful club with a star-studded lineup hungry for European glory.
-Odds: Consistent contenders looking to finally claim their first Champions League title.
+New Champion 4
+Description: Chelsea has reestablished itself as a major European force, combining proven European pedigree with the tactical innovations introduced by Thomas Tuchel and subsequent managers.
+
+Team: Chelsea
+Reason: English powerhouse that clinched the 2021 Champions League title under Thomas Tuchel.
+
+

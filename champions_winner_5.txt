@@ -1,5 +1,7 @@
-Juventus
+New Champion 5
+Description: FC Barcelona represents a legendary institution in world football, blending a rich history of European success with an exciting new generation of young Spanish talent poised for future glory.
 =================================================
 Team: FC Barcelona
+Reason: Historic club with a tradition of beautiful football and European success.
 Reason: Historic club with a tradition of beautiful football and European success.
 Odds: Rebuilding era showing promise, capable of surprising everyone with young talent.
